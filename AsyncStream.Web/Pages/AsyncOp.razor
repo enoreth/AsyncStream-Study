@@ -1,0 +1,49 @@
+﻿@page "/AsyncOp"
+@using AsyncStream.Web.Data
+@using AsyncStream.Core
+
+@inject AsyncHttpClient _httpClient
+
+@foreach (var author in Authors)
+{
+	<div class="row">
+        <div class="col-md-1">
+            @author.Id
+        </div>
+		<div class="col-md-2">
+			@author.FirstName, @author.LastName
+		</div>
+	</div>
+}
+
+
+@code {
+
+    List<Author> Authors = new List<Author>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await foreach (var author in RetrieveAsync())
+        {
+            Authors.Add(author);
+            StateHasChanged();
+        }
+    }
+
+    protected async IAsyncEnumerable<Author> RetrieveAsync()
+    {
+                                                                                 
+        using (HttpResponseMessage response = await _httpClient.Client.GetAsync("https://localhost:44331/api/Author/getndjsonasync", HttpCompletionOption.ResponseHeadersRead))
+        {
+            response.EnsureSuccessStatusCode();
+
+            await foreach (var author in response.Content!.ReadFromNdjsonAsync<Author>()
+                .ConfigureAwait(false))
+            {
+                yield return author;
+            }
+        }
+
+    }
+}
+
