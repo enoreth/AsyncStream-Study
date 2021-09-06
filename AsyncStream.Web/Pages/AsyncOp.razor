@@ -1,19 +1,27 @@
 ﻿@page "/AsyncOp"
 @using AsyncStream.Web.Data
 @using AsyncStream.Core
+@using System.Threading
 
 @inject AsyncHttpClient _httpClient
 
+@*<div class="row">
+    <div class="col-md-2">
+        <button class="btn btn-primary" @onclick="async () => await CancelDownloadAsync()">Cancel</button>
+    </div>
+</div>*@
+
+
 @foreach (var author in Authors)
 {
-	<div class="row">
+    <div class="row">
         <div class="col-md-1">
             @author.Id
         </div>
-		<div class="col-md-2">
-			@author.FirstName, @author.LastName
-		</div>
-	</div>
+        <div class="col-md-2">
+            @author.FirstName, @author.LastName
+        </div>
+    </div>
 }
 
 
@@ -21,29 +29,32 @@
 
     List<Author> Authors = new List<Author>();
 
+    CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+
+    CancellationToken cancellationToken;
+
     protected override async Task OnInitializedAsync()
     {
-        await foreach (var author in RetrieveAsync())
-        {
-            Authors.Add(author);
-            StateHasChanged();
-        }
-    }
 
-    protected async IAsyncEnumerable<Author> RetrieveAsync()
-    {
-                                                                                 
-        using (HttpResponseMessage response = await _httpClient.Client.GetAsync("https://localhost:44331/api/Author/getndjsonasync", HttpCompletionOption.ResponseHeadersRead))
-        {
-            response.EnsureSuccessStatusCode();
+        
+        cancellationToken = cancellationTokenSource.Token;
 
-            await foreach (var author in response.Content!.ReadFromNdjsonAsync<Author>()
-                .ConfigureAwait(false))
+        await foreach (var author in _httpClient.RetrieveAsync())
+        {
+            if (!cancellationToken.IsCancellationRequested)
             {
-                yield return author;
+                Authors.Add(author);
+                StateHasChanged();
             }
         }
-
     }
+
+    private async Task CancelDownloadAsync()
+    {
+        cancellationTokenSource.Cancel();
+    }
+
+
+
 }
 

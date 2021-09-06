@@ -11,15 +11,15 @@ namespace AsyncStream.Api.Controllers
     [ApiController]
     public class AuthorController : ControllerBase
     {
-        private string[] namepool = new string[] { "Devrim", "Deniz", "Yulia", "Lisa" };
-        private string[] sirnamepool = new string[] { "Kural", "Ruschenko"};
+        private string[] namepool = new string[] { "Hans", "Thomas", "Mark", "Lisa" };
+        private string[] sirnamepool = new string[] { "Jahovic", "Hannesberg"};
 
         [HttpGet]
         public ActionResult<IEnumerable<Author>> Get()
         {
             return new List<Author>
             {
-                new Author{ Id = 1, FirstName ="Devrim", LastName = "Kural"}
+                new Author{ Id = 1, FirstName ="Hans", LastName = "Toman"}
             };
         }
 
